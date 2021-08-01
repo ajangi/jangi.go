@@ -1,7 +1,34 @@
 version: '3'
-
 services:
-  app:
+  jangi-app:
+    restart: always
+    container_name: jangi_dev_app
+    env_file:
+      - .env
     build:
       context: .
-      dockerfile: docker
+      dockerfile: dev.Dockerfile
+    ports:
+      - "127.0.0.1:8080:80"
+    networks:
+      - jangi-network
+  jangi-database:
+    image: mysql:8
+    container_name: jangi_dev_database # Database service container name
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_DATABASE: jangi_db # your database name
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - /opt/db-data/jangi.go:/var/lib/mysql
+      - ./docker/dev/mysql/my.cnf:/etc/mysql/conf.d/jangi.cnf
+    networks:
+      - jangi-network
+networks:
+  jangi-network:
+    driver: bridge
